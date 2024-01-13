@@ -7,9 +7,9 @@ class Program
     static void Main()
     {
         Console.WriteLine("Hello");
-        string[] linesBlogs = File.ReadAllLines("D:/cSharp/EFIntro/Blogs.csv");
-        string[] linesUsers = File.ReadAllLines("D:/cSharp/EFIntro/Users.csv");
-        string[] linesPosts = File.ReadAllLines("D:/cSharp/EFIntro/Posts.csv");
+        string[] linesBlogs = File.ReadAllLines("../../../Blogs.csv");
+        string[] linesUsers = File.ReadAllLines("../../../Users.csv");
+        string[] linesPosts = File.ReadAllLines("../../../Posts.csv");
         using (var db = new BloggingContext())
         {
             foreach (string line in linesBlogs)
