@@ -1,139 +1,75 @@
 ﻿using EFIntro;
-using System;
-using System.IO;
-using System.Linq;
-class Program
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using System.Net;
+using var db = new BloggingContext();
+string[] usersfile = File.ReadAllLines("../../../Users.csv");
+string[] blogsfile = File.ReadAllLines("../../../Blogs.csv");
+string[] postsfile = File.ReadAllLines("../../../Posts.csv");
+
+Console.WriteLine($"SQLite DB Located at: {db.DbPath}\n");
+
+foreach (var line in usersfile)
 {
-    static void Main()
+    string[] userTable = line.Split(",");
+    int userId = int.Parse(userTable[0]);
+    string username = userTable[1];
+    string password = userTable[2];
+    User? userDb = db.Users?.Find(userId);
+    if (userDb != null)
     {
-        Console.WriteLine("Hello");
-        string[] linesBlogs = File.ReadAllLines("../../../Blogs.csv");
-
-        string[] linesUsers = File.ReadAllLines("../../../Users.csv");
-        string[] linesPosts = File.ReadAllLines("../../../Posts.csv");
-        using (var db = new BloggingContext())
-        {
-            List<int> Blogid1 = new List<int>();
-            List<int> Blogid2 = new List<int>();
-
-            foreach (string line in linesBlogs)
-            {
-                string[] blogLine = line.Split(',');
-                int Posts = int.Parse(blogLine[3]);
-                int blogid = int.Parse(blogLine[0]);
-                if (blogid == 1)
-                {
-                    Blogid1.Add(Posts);
-                }
-                if (blogid == 2)
-                {
-                    Blogid2.Add(Posts);
-                }
-            }
-
-            string test = string.Empty;
-            int count = 0;
-            foreach (string line in linesBlogs)
-            {
-                string[] blogLine = line.Split(',');
-                string url = blogLine[1];
-                string name = blogLine[2];
-                int postid = int.Parse(blogLine[3]);
-
-                if (test != url)
-                {
-
-                    if (count == 0)
-                    {
-
-                        db.Blogs.Add(new Blog { Url = url, Name = name, Posts = Blogid1 });
-                        count++;
-                    }
-
-                    else
-                    {
-                        db.Blogs.Add(new Blog { Url = url, Name = name, Posts = Blogid2 });
-                        break;
-
-                    }
-                }
-                test = url;
-            }
-
-            List<int> Userid1 = new List<int>();
-            List<int> Userid2 = new List<int>();
-
-            foreach (string line in linesUsers)
-            {
-                string[] userLine = line.Split(',');
-                int Posts = int.Parse(userLine[3]);
-                int userid = int.Parse(userLine[0]);
-                if (userid == 1)
-                {
-                    Userid1.Add(Posts);
-                }
-                if (userid == 2)
-                {
-                    Userid2.Add(Posts);
-                }
-
-            }
-            string test1 = string.Empty;
-            int count1 = 0;
-            foreach (string line in linesUsers)
-            {
-                string[] userLine = line.Split(',');
-                int userId = int.Parse(userLine[0]);
-                string username = userLine[1];
-                string password = userLine[2];
-                int postId = int.Parse(userLine[3]);
-                if (test1 != username)
-                {
-                    if (count1 == 0)
-                    {
-                        db.Users.Add(new User { Id = userId, Username = username, Password = password, Posts = Userid1 });
-                        count1++;
-                    }
-                    else
-                    {
-                        db.Users.Add(new User { Id = userId, Username = username, Password = password, Posts = Userid2 });
-                        break;
-                    }
-                }
-                test1 = username;
-            }
-            foreach (string line in linesPosts)
-            {
-                string[] postLine = line.Split(',');
-                int postId = int.Parse(postLine[0]);
-                string title = postLine[1];
-                string content = postLine[2];
-                string published = postLine[3];
-                int blogId = int.Parse(postLine[4]);
-                int userId = int.Parse(postLine[5]);
-                db.Posts.Add(new Post { Id = postId, Title = title, Content = content, PublishedOn = published, BlogId = blogId, UserId = userId });
-            }
-            db.SaveChanges();
-            var blogs = db.Blogs.ToList();
-            Console.WriteLine("Blogs:");
-            foreach (var blog in blogs)
-            {
-                Console.WriteLine($"BlogId: {blog.Id}, Url: {blog.Url}, Name: {blog.Name}");
-            }
-            var users = db.Users.ToList();
-
-            Console.WriteLine("\nUsers:");
-            foreach (var user in users)
-            {
-                Console.WriteLine($"UserId: {user.Id}, Username: {user.Username}, Password: {user.Password}");
-            }
-
-            var posts = db.Posts.ToList();
-            Console.WriteLine("\nPosts:");
-            foreach (var post in posts)
-            {
-                Console.WriteLine($"PostId: {post.Id}, Title: {post.Title}, Content: {post.Content}, PublishedOn: {post.PublishedOn}, BlogId: {post.BlogId}, UserId: {post.UserId}");
-            }
-        }
+        continue;
     }
+    db.Add(new User { Id= userId, Username = username, Password = password });
+}
+foreach (var line in blogsfile)
+{
+    string[] blogTable = line.Split(",");
+    int blogId = int.Parse(blogTable[0]);
+    string url = blogTable[1];
+    string name = blogTable[2];
+    Blog? blogDb = db.Blogs?.Find(blogId);
+    if (blogDb != null)
+    {
+        continue;
+    }
+    db.Add(new Blog { Id = blogId, Url = url, Name = name });
+}
+
+foreach (var line in postsfile)
+{
+    string[] postTable = line.Split(",");
+    int id = int.Parse(postTable[0]);
+    string title = postTable[1];
+    string content = postTable[2];
+    DateOnly date = DateOnly.Parse(postTable[3]);
+    int BlogId = int.Parse(postTable[4]);
+    int UserId = int.Parse(postTable[5]);
+    db.Add(new Post { Title = title, Content = content, PublishedOn = date, BlogId = BlogId, UserId = UserId });
+}
+
+db.SaveChanges();
+
+Console.WriteLine("DB:");
+Console.WriteLine("├─ Users");
+foreach (var user in db.Users)
+{
+    Console.WriteLine($"│  └─ User ID: {user.Id}, Username: {user.Username}, Password: {user.Password}");
+    foreach (var post in user.Posts)
+    {
+        Console.WriteLine($"│     └─ Post ID: {post.Id}, Title: {post.Title}, Content: {post.Content}, Published On: {post.PublishedOn}");
+    }
+}
+Console.WriteLine("├─ Blogs");
+foreach (var blog in db.Blogs)
+{
+    Console.WriteLine($"│  └─ Blog ID: {blog.Id}, URL: {blog.Url}, Name: {blog.Name}");
+    foreach (var post in blog.Posts)
+    {
+        Console.WriteLine($"│     └─ Post ID: {post.Id}, Title: {post.Title}, Content: {post.Content}, Published On: {post.PublishedOn}");
+    }
+}
+Console.WriteLine("├─ Posts");
+foreach (var post in db.Posts)
+{
+    Console.WriteLine($"│  └─ Post ID: {post.Id}, Title: {post.Title}, Content: {post.Content}, Published On: {post.PublishedOn}");
 }

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFIntro.Migrations
 {
     [DbContext(typeof(BloggingContext))]
-    [Migration("20240113150138_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240117144709_initialcreate")]
+    partial class initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,18 +22,12 @@ namespace EFIntro.Migrations
 
             modelBuilder.Entity("EFIntro.Blog", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("BlogId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
-
-                    b.Property<int?>("PostId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Url")
                         .HasColumnType("TEXT");
@@ -45,32 +39,30 @@ namespace EFIntro.Migrations
 
             modelBuilder.Entity("EFIntro.Post", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("BlogId")
+                    b.Property<int>("BlogId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Content")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PublishedOn")
+                    b.Property<DateOnly>("PublishedOn")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BlogId")
-                        .IsUnique();
+                    b.HasIndex("BlogId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Posts");
                 });
@@ -84,9 +76,6 @@ namespace EFIntro.Migrations
                     b.Property<string>("Password")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("PostId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Username")
                         .HasColumnType("TEXT");
 
@@ -98,12 +87,16 @@ namespace EFIntro.Migrations
             modelBuilder.Entity("EFIntro.Post", b =>
                 {
                     b.HasOne("EFIntro.Blog", "Blog")
-                        .WithOne("Post")
-                        .HasForeignKey("EFIntro.Post", "BlogId");
+                        .WithMany("Posts")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("EFIntro.User", "User")
-                        .WithOne("Post")
-                        .HasForeignKey("EFIntro.Post", "UserId");
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Blog");
 
@@ -112,14 +105,12 @@ namespace EFIntro.Migrations
 
             modelBuilder.Entity("EFIntro.Blog", b =>
                 {
-                    b.Navigation("Post")
-                        .IsRequired();
+                    b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("EFIntro.User", b =>
                 {
-                    b.Navigation("Post")
-                        .IsRequired();
+                    b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618
         }

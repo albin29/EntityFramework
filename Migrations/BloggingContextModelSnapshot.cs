@@ -19,15 +19,11 @@ namespace EFIntro.Migrations
 
             modelBuilder.Entity("EFIntro.Blog", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Posts")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Url")
@@ -40,23 +36,23 @@ namespace EFIntro.Migrations
 
             modelBuilder.Entity("EFIntro.Post", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("BlogId")
+                    b.Property<int>("BlogId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Content")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PublishedOn")
+                    b.Property<DateOnly>("PublishedOn")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -70,15 +66,11 @@ namespace EFIntro.Migrations
 
             modelBuilder.Entity("EFIntro.User", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Password")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Posts")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Username")
@@ -92,16 +84,30 @@ namespace EFIntro.Migrations
             modelBuilder.Entity("EFIntro.Post", b =>
                 {
                     b.HasOne("EFIntro.Blog", "Blog")
-                        .WithMany()
-                        .HasForeignKey("BlogId");
+                        .WithMany("Posts")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("EFIntro.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Blog");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EFIntro.Blog", b =>
+                {
+                    b.Navigation("Posts");
+                });
+
+            modelBuilder.Entity("EFIntro.User", b =>
+                {
+                    b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618
         }
